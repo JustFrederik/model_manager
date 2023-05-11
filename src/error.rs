@@ -1,6 +1,6 @@
+use indicatif::style::TemplateError;
 use std::any::Any;
 use std::convert::Infallible;
-use indicatif::style::TemplateError;
 use tokio::task::JoinError;
 use zip_extract::ZipExtractError;
 
@@ -15,16 +15,16 @@ pub enum Error {
     AsyncThreadJoin(JoinError),
     OpenFileError(std::io::Error),
     WriteFileError(String),
-    Custom{message:String, error: String},
-    CustomEmpty {message: String},
+    Custom { message: String, error: String },
+    CustomEmpty { message: String },
     ZipExtractError(ZipExtractError),
     PathBufError(Infallible),
-    PathBufCustomError(String)
+    PathBufCustomError(String),
 }
 
 impl Error {
     pub fn new(message: impl ToString, error: impl ToString) -> Self {
-        Error::Custom{
+        Error::Custom {
             message: message.to_string(),
             error: error.to_string(),
         }
@@ -54,7 +54,7 @@ impl Error {
         Error::ConsoleTemplateError(error)
     }
 
-    pub fn console_clear(error: std::io::Error) -> Self{
+    pub fn console_clear(error: std::io::Error) -> Self {
         Error::ConsoleClearError(error)
     }
 
@@ -76,7 +76,6 @@ impl Error {
 
     pub fn write_file_extra(error: fs_extra::error::Error) -> Self {
         Error::WriteFileError(error.to_string())
-
     }
 
     pub fn open_file(error: std::io::Error) -> Self {
