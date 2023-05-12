@@ -42,15 +42,19 @@ impl ModelManager {
         self.models.extend(map)
     }
 
-    pub async fn get_model(&self, ident: &str) -> Result<(&PathBuf, &Model), Error> {
+    pub fn get_model(&self, ident: &str) -> Result<(&PathBuf, &Model), Error> {
+        async_std::task::block_on(self.get_model_async(ident))
+    }
+
+    pub async fn get_model_async(&self, ident: &str) -> Result<(&PathBuf, &Model), Error> {
         let model = self.models.get(ident).ok_or(Error::ModelNotFound)?;
         let download_needed = self.check_download_needed(
             self.model_path.join(&model.directory),
             model.version.to_string(),
         );
-        self.create_paths(&vec![(&ident.to_string(), model)])?;
-        let v = MultiProgress::new();
         if download_needed {
+            let v = MultiProgress::new();
+            self.create_paths(&vec![(&ident.to_string(), model)])?;
             download_file(
                 &model.source,
                 ident.to_string(),
