@@ -1,12 +1,13 @@
+use std::collections::HashMap;
+use std::path::PathBuf;
+use std::str::FromStr;
+use std::time::Instant;
+
 use chrono::Utc;
 use console::{style, Emoji};
 use fs_extra::dir::CopyOptions;
 use futures::{stream, StreamExt};
 use indicatif::{HumanDuration, MultiProgress};
-use std::collections::HashMap;
-use std::path::PathBuf;
-use std::str::FromStr;
-use std::time::Instant;
 
 use crate::downloader::download_file;
 use crate::error::Error;
@@ -41,6 +42,27 @@ impl ModelManager {
         self.models.extend(map)
     }
 
+    pub async fn get_model(&self, ident: &str) -> Result<(&PathBuf, &Model), Error> {
+        let model = self.models.get(ident).ok_or(Error::ModelNotFound)?;
+        let download_needed = self.check_download_needed(
+            self.model_path.join(&model.directory),
+            model.version.to_string(),
+        );
+        self.create_paths(&vec![(&ident.to_string(), model)])?;
+        let v = MultiProgress::new();
+        if download_needed {
+            download_file(
+                &model.source,
+                ident.to_string(),
+                model.version.to_string(),
+                self.model_path.join(&model.directory),
+                &v,
+            )
+            .await?;
+        }
+        Ok((&self.model_path, model))
+    }
+
     pub fn clean_directory(&self) -> Result<(), Error> {
         use fs_extra::dir::move_dir;
         let timestamp = Utc::now().timestamp();
@@ -63,7 +85,7 @@ impl ModelManager {
                 v.push_str(timestamp.to_string().as_ref())
             }
         }
-        let to = PathBuf::from_str(&to.join("/")).map_err(Error::pathbuf_open)?;
+        let to = PathBuf::from(&to.join("/"));
         std::fs::create_dir_all(&to).map_err(Error::write_file)?;
         move_dir(&self.model_path, &to, &options).map_err(Error::write_file_extra)?;
 

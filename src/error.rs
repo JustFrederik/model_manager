@@ -20,6 +20,7 @@ pub enum Error {
     ZipExtractError(ZipExtractError),
     PathBufError(Infallible),
     PathBufCustomError(String),
+    ModelNotFound,
 }
 
 impl Error {
