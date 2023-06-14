@@ -15,6 +15,7 @@ use crate::error::Error;
 static LOOKING_GLASS: Emoji<'_, '_> = Emoji("🔍  ", "");
 static SPARKLE: Emoji<'_, '_> = Emoji("✨ ", ":-)");
 
+#[derive(Clone)]
 pub struct ModelManager {
     model_path: PathBuf,
     models: HashMap<String, Model>,
@@ -175,17 +176,20 @@ impl ModelManager {
     }
 }
 
+#[derive(Clone)]
 pub struct Model {
     pub directory: PathBuf,
     pub version: String,
     pub source: ModelSource,
 }
 
+#[derive(Clone)]
 pub enum ModelSource {
     Huggingface(HuggingfaceModel),
     Zip(String),
 }
 
+#[derive(Clone)]
 pub struct HuggingfaceModel {
     pub repo: String,
     pub files: Vec<String>,
